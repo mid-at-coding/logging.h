@@ -1,6 +1,17 @@
 # logging.h
 A small logging library for C
 
+# Why?
+
+Many logging libraries, in my opinion, are either [too complicated for general usage (IMO)](https://goatshriek.github.io/stumpless/), or frankly 
+too [awkward to use for my preferences](https://github.com/yksz/c-logger). This is not meant to be a slight on these libraries, just a rationale
+for yet another simple logging library. For this reason, I have been using this library in various iterations for 
+[a couple years](https://github.com/mid-at-coding/palmak/blob/main/error.cpp) in one form or another, and gradually moved it to 
+[C](https://github.com/mid-at-coding/cablegen/blob/main/inc/logging.h). 
+Since my original cablegen used raylib for a frontend(and it had its own, bespoke, logging), there became a need to be able to namespace 
+functions and constants, and I have essentially just taken the logging from cablegen, made it into one file, added a couple features, 
+and ended up with this library ;)
+
 # Example usage
 ```c
  #define LOG_H_IMPLEMENTATION
