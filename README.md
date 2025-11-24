@@ -28,7 +28,7 @@ A small logging library for C
 `LOG_H_ENUM_PREFIX_:` the prefix for the sensitivity enum values
 
 
-```c
+```
 enum LOG_H_LOG_LEVEL:
     LOG_TRACE
     LOG_DBG
