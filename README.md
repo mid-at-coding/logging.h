@@ -26,6 +26,8 @@ A small logging library for C
 
 # Definitions
 `LOG_H_ENUM_PREFIX_:` the prefix for the sensitivity enum values
+
+
 ```c
 enum LOG_H_LOG_LEVEL:
     LOG_TRACE
@@ -35,32 +37,52 @@ enum LOG_H_LOG_LEVEL:
     LOG_ERROR (red color) 
 ```
 `LOG_H_NAMESPACE_`: the prefix for the function names
+
+
 `LOG_H_IMPLEMENTATION`: defines where the implementation lives
 
 # API:
 `get_prefix(level):`
-    returns the prefix for the given level, including setting the color if appropriate
+
+
+returns the prefix for the given level, including setting the color if appropriate
 
 `char* get_prefix_nc(level):`
-    returns the prefix for the given level, without color (used in _f variants)
+
+
+returns the prefix for the given level, without color (used in _f variants)
 
 `char* get_postfix(level):`
-    returns the postfix for the given level, mostly just resets the color of the terminal (not called for _f variants)
+
+
+returns the postfix for the given level, mostly just resets the color of the terminal (not called for _f variants)
 
 `set_log_level(level):`
-    stops logs under the given level from outputting
+
+
+stops logs under the given level from outputting
 
 `bool logif(level):`
-    returns true if the given level is equal or above the set level
+
+
+returns true if the given level is equal or above the set level
 
 `log_out(str, level):`
-    outputs str to stdout with the appropriate prefix and a newline
+
+
+outputs str to stdout with the appropriate prefix and a newline
 
 `logf_out(fmt, level, ...):`
-    outputs a formatted string to stdout with the appropriate prefix
+
+
+outputs a formatted string to stdout with the appropriate prefix
 
 `log_f(fp, str, level):`
-    outputs str to a file with the appropriate prefix and a newline
+
+
+outputs str to a file with the appropriate prefix and a newline
 
 `logf_f(fp, fmt, level, ...):`
-    outputs a formatted string to a file with the appropriate prefix
+
+
+outputs a formatted string to a file with the appropriate prefix
