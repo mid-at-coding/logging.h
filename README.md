@@ -3,7 +3,7 @@ A small logging library for C
 
 # Why?
 
-Many logging libraries, in my opinion, are either [too complicated for general usage (IMO)](https://goatshriek.github.io/stumpless/), or frankly 
+Many logging libraries, in my opinion, are either [too complicated for general usage](https://goatshriek.github.io/stumpless/), or frankly 
 too [awkward to use for my preferences](https://github.com/yksz/c-logger). This is not meant to be a slight on these libraries, just a rationale
 for yet another simple logging library. For this reason, I have been using this library in various iterations for 
 [a couple years](https://github.com/mid-at-coding/palmak/blob/main/error.cpp) in one form or another, and gradually moved it to 
