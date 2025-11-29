@@ -211,6 +211,7 @@ void LOG_H_FUN(logf_out)(const char* fmt, const unsigned int level, ...){ // TOD
 	vsprintf(buf, fmt, v1);
 	va_end(v1);
 	printf("%s %s %s%s", LOG_H_FUN(get_prefix)(level), buf, LOG_H_FUN(get_postfix)(level), LOG_H_ENDL);
+	free(buf);
 }
 
 void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...){ 
@@ -230,5 +231,6 @@ void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...
 	vsprintf(buf, fmt, v1);
 	va_end(v1);
 	fprintf(out, "%s %s %s", LOG_H_FUN(get_prefix_nc)(level), buf, LOG_H_ENDL);
+	free(buf);
 }
 #endif // LOG_H_IMPLEMENTATION
