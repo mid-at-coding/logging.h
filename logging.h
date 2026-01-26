@@ -216,7 +216,7 @@ void LOG_H_FUN(log_out)(const char* strin, const enum LOG_H_NAME(LOG_H_LOG_LEVEL
 	if(str == NULL)
 		return; // would print a diagnostic but...
 	strcpy(str, strin);
-	fprintf(LOG_H_CHOOSE_OUTPUT(level), "%s %s %s", LOG_H_FUN(get_prefix)(level), str, LOG_H_ENDL);
+	fprintf(LOG_H_CHOOSE_OUTPUT(level), "%s %s %s%s", LOG_H_FUN(get_prefix)(level), str, LOG_H_FUN(get_postfix)(level), LOG_H_ENDL);
 	free(str);
 }
 void LOG_H_FUN(log_f)(FILE *out, const char* strin, const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
