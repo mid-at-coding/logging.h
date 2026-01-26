@@ -1,4 +1,4 @@
-/* logging.h: v1.0: GPL v3
+/* logging.h: v1.1: GPL v3
  * A simple, cross platform, logging library for C.
  * Example usage:
  * 	#define LOG_H_IMPLEMENTATION
@@ -22,7 +22,7 @@
  * 	}
  *
  * Definitions:
- * 	LOG_H_ENUM_PREFIX_: the prefix for the sensitivity enum values
+ * 	LOG_H_ENUM_PREFIX_: the prefix for the sensitivity enum values and type
  * 	enum LOG_H_LOG_LEVEL:
  * 		LOG_TRACE
  * 		LOG_DBG
@@ -31,6 +31,8 @@
  * 		LOG_ERROR (red color)
  * 	LOG_H_NAMESPACE_: the prefix for the function names
  * 	LOG_H_IMPLEMENTATION: defines where the implementation lives
+ * 	LOG_H_STDERR_THRESHOLD: defines the log level above which log_* will be sent to stderr instead of stdout (unset = always stdout, 
+ * 	    only takes effect when LOG_H_IMPLEMENTATION is defined)
  * API:
  *	get_prefix(level):
  *		returns the prefix for the given level, including setting the color if appropriate
@@ -58,6 +60,14 @@
  *
  *	logf_f(fp, fmt, level, ...):
  *		outputs a formatted string to a file with the appropriate prefix
+ *
+ *	Quirks:
+ *	 Setting a different LOG_H_FUN defines a different logging "instance" with completely seperate sensitivity.
+ *	 Two instances with the same LOG_H_FUN may not have differing LOG_H_NAME unless the compiler is smart enough
+ *	 to figure out that the types are essentially the same.
+ *	Changelog:
+ *	 1.0 -> 1.1: 
+ *	  Fixed bug with log_out not showing colors, added LOG_H_STDERR_THRESHOLD, changed sensitivity to be namespaced
  * */
 
 #ifndef LOGGING_H_
@@ -76,7 +86,7 @@
 # define LOG_H_ENDL "\n"
 #endif // _WIN32
 
-enum LOG_H_LOG_LEVEL{
+enum LOG_H_NAME(LOG_H_LOG_LEVEL){
 	LOG_H_NAME(LOG_TRACE),
 	LOG_H_NAME(LOG_DBG),
 	LOG_H_NAME(LOG_INFO),
@@ -84,23 +94,43 @@ enum LOG_H_LOG_LEVEL{
 	LOG_H_NAME(LOG_ERROR)
 };
 
-extern enum LOG_H_LOG_LEVEL sensitivity;
+extern enum LOG_H_NAME(LOG_H_LOG_LEVEL) LOG_H_FUN(sensitivity); // sensitivity isn't a function, but should be locally namespaced to avoid confusing situations such as
+/* #define LOG_H_IMPLEMENTATION
+ * #define LOG_H_ENUM_PREFIX_ log_h1_
+ * #define LOG_H_NAMESPACE_ log_h_
+ * #include "logging.h"
+ * ...
+ * #undef LOG_H_IMPLEMENTATION
+ * #define LOG_H_ENUM_PREFIX_ log_h2_
+ * #include "logging.h"
+ * // differening definition of log_h_sensitivity! (enum log_h2_LOG_H_LOG_LEVEL vs log_h1_LOG_H_LOG_LEVEL)
+ * // on top of that, (if that were ignored) log_h1_set_log_level and log_h2_set_log_level both refer to the same
+ * // log_h_sensitivity, which may be undesired, and will certainly cause some issues. Better a few
+ * // extra symbols than all of this headache
+ */
 
-char *LOG_H_FUN(get_prefix)(const enum LOG_H_LOG_LEVEL level);
-char *LOG_H_FUN(get_prefix_nc)(const enum LOG_H_LOG_LEVEL level);
-char *LOG_H_FUN(get_postfix)(const enum LOG_H_LOG_LEVEL level);
+char *LOG_H_FUN(get_prefix)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
+char *LOG_H_FUN(get_prefix_nc)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
+char *LOG_H_FUN(get_postfix)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
 
-void LOG_H_FUN(set_log_level)(const enum LOG_H_LOG_LEVEL level);
-bool LOG_H_FUN(logif)(const enum LOG_H_LOG_LEVEL);
+void LOG_H_FUN(set_log_level)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
+bool LOG_H_FUN(logif)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL));
 
-void LOG_H_FUN(log_out)(const char* str, const enum LOG_H_LOG_LEVEL level);
-void LOG_H_FUN(log_f)(FILE *out, const char *str, const enum LOG_H_LOG_LEVEL level);
+void LOG_H_FUN(log_out)(const char* str, const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
+void LOG_H_FUN(log_f)(FILE *out, const char *str, const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level);
 
 void LOG_H_FUN(logf_out)(const char* fmt, const unsigned int level, ...);
 void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...);
 
 #endif // LOGGING_H_
 #ifdef LOG_H_IMPLEMENTATION
+
+#ifdef LOG_H_STDERR_THRESHOLD
+#define LOG_H_CHOOSE_OUTPUT(sensitivity) (sensitivity >= LOG_H_STDERR_THRESHOLD ? stderr : stdout)
+#else
+#define LOG_H_CHOOSE_OUTPUT(sensitivity) (stdout)
+#endif // LOG_H_STDERR_THRESHOLD
+	   
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,9 +139,9 @@ void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...
 # include <windows.h>
 #endif // _WIN32
 
-enum LOG_H_LOG_LEVEL sensitivity;
+enum LOG_H_NAME(LOG_H_LOG_LEVEL) LOG_H_FUN(sensitivity);
 
-char* LOG_H_FUN(get_prefix)(const enum LOG_H_LOG_LEVEL level){
+char* LOG_H_FUN(get_prefix)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
 #ifdef _WIN32
 	HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif // _WIN32
@@ -140,7 +170,7 @@ char* LOG_H_FUN(get_prefix)(const enum LOG_H_LOG_LEVEL level){
 	return (char*)"";
 }
 
-char* LOG_H_FUN(get_prefix_nc)(const enum LOG_H_LOG_LEVEL level){
+char* LOG_H_FUN(get_prefix_nc)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
 	switch (level){
 		case LOG_H_NAME(LOG_TRACE):
 			return (char*)"[TRACE]"; // all these casts are to make C++ happy
@@ -156,7 +186,7 @@ char* LOG_H_FUN(get_prefix_nc)(const enum LOG_H_LOG_LEVEL level){
 	return (char*)"";
 }
 
-char* LOG_H_FUN(get_postfix)(const enum LOG_H_LOG_LEVEL level){
+char* LOG_H_FUN(get_postfix)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
 #ifdef _WIN32
 	HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif // _WIN32
@@ -169,21 +199,28 @@ char* LOG_H_FUN(get_postfix)(const enum LOG_H_LOG_LEVEL level){
 	return (char*)"";
 }
 
-void LOG_H_FUN(set_log_level)(const enum LOG_H_LOG_LEVEL level){
-	sensitivity = level;
+void LOG_H_FUN(set_log_level)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
+	LOG_H_FUN(sensitivity) = level;
 }
-bool LOG_H_FUN(logif)(const enum LOG_H_LOG_LEVEL level){ 
-	if(level < sensitivity)
+bool LOG_H_FUN(logif)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){ 
+	if(level < LOG_H_FUN(sensitivity))
 		return false;
 	printf("%s", LOG_H_FUN(get_prefix)(level));
 	return true;
 }
 
-void LOG_H_FUN(log_out)(const char* strin, const enum LOG_H_LOG_LEVEL level){
-	LOG_H_FUN(log_f)(stdout, strin, level);
+void LOG_H_FUN(log_out)(const char* strin, const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
+	if(level < LOG_H_FUN(sensitivity))
+		return;
+	char* str = (char*)malloc(strlen(strin) + 1);
+	if(str == NULL)
+		return; // would print a diagnostic but...
+	strcpy(str, strin);
+	fprintf(LOG_H_CHOOSE_OUTPUT(level), "%s %s %s", LOG_H_FUN(get_prefix)(level), str, LOG_H_ENDL);
+	free(str);
 }
-void LOG_H_FUN(log_f)(FILE *out, const char* strin, const enum LOG_H_LOG_LEVEL level){
-	if(level < sensitivity)
+void LOG_H_FUN(log_f)(FILE *out, const char* strin, const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
+	if(level < LOG_H_FUN(sensitivity))
 		return;
 	char* str = (char*)malloc(strlen(strin) + 1);
 	if(str == NULL)
@@ -193,9 +230,8 @@ void LOG_H_FUN(log_f)(FILE *out, const char* strin, const enum LOG_H_LOG_LEVEL l
 	free(str);
 }
 
-void LOG_H_FUN(logf_out)(const char* fmt, const unsigned int level, ...){ // TODO find a nice way to express this function
-									  // as logf_f(stdout, ...) (maybe a macro?)
-	if(level < sensitivity)
+void LOG_H_FUN(logf_out)(const char* fmt, const unsigned int level, ...){
+	if(level < LOG_H_FUN(sensitivity))
 		return;
 	va_list v, v1;
 	va_start(v, level);
@@ -210,12 +246,12 @@ void LOG_H_FUN(logf_out)(const char* fmt, const unsigned int level, ...){ // TOD
 	}
 	vsprintf(buf, fmt, v1);
 	va_end(v1);
-	printf("%s %s %s%s", LOG_H_FUN(get_prefix)(level), buf, LOG_H_FUN(get_postfix)(level), LOG_H_ENDL);
+	fprintf(LOG_H_CHOOSE_OUTPUT(level), "%s %s %s%s", LOG_H_FUN(get_prefix)(level), buf, LOG_H_FUN(get_postfix)(level), LOG_H_ENDL);
 	free(buf);
 }
 
 void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...){ 
-	if(level < sensitivity)
+	if(level < LOG_H_FUN(sensitivity))
 		return;
 	va_list v, v1;
 	va_start(v, level);

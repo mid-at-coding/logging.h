@@ -1,9 +1,11 @@
 #define LOG_H_IMPLEMENTATION
 #define LOG_H_ENUM_PREFIX_
 #define LOG_H_NAMESPACE_
+#define LOG_H_STDERR_THRESHOLD LOG_ERROR
 #include "logging.h"
 
 int main(int argc, char **argv){
 	set_log_level(LOG_INFO);
-	logf_out("%d is my number :3", LOG_DBG, 3);
+	logf_out("%d is my secret number :3", LOG_DBG, 3);
+	log_out("AH FUCK AHHHH FUCK", LOG_ERROR); // sent to stderr
 }
