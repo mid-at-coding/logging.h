@@ -1,4 +1,4 @@
-/* logging.h: v1.1: GPL v3
+/* logging.h: v1.2: GPL v3
  * A simple, cross platform, logging library for C.
  * Example usage:
  * 	#define LOG_H_IMPLEMENTATION
@@ -33,6 +33,9 @@
  * 	LOG_H_IMPLEMENTATION: defines where the implementation lives
  * 	LOG_H_STDERR_THRESHOLD: defines the log level above which log_* will be sent to stderr instead of stdout (unset = always stdout, 
  * 	    only takes effect when LOG_H_IMPLEMENTATION is defined)
+ * 	LOG_H_STDOUT: defines an alternative location for stdout-bound logs to go (default: stdout)
+ * 	LOG_H_STDERR: defines an alternative location for stderr-bound logs to go (default: stderr)
+ * 	LOG_H_NOCOLOR: if defined, color will not be used regardless of log level 
  * API:
  *	get_prefix(level):
  *		returns the prefix for the given level, including setting the color if appropriate
@@ -66,6 +69,8 @@
  *	 Two instances with the same LOG_H_FUN may not have differing LOG_H_NAME unless the compiler is smart enough
  *	 to figure out that the types are essentially the same.
  *	Changelog:
+ *	 1.1 -> 1.2:
+ *        Added LOG_H_STDOUT, LOG_H_STDERR, and LOG_H_NOCOLOR, for more flexible logging to files
  *	 1.0 -> 1.1: 
  *	  Fixed bug with log_out not showing colors, added LOG_H_STDERR_THRESHOLD, changed sensitivity to be namespaced
  * */
@@ -125,10 +130,18 @@ void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...
 #endif // LOGGING_H_
 #ifdef LOG_H_IMPLEMENTATION
 
+#ifndef LOG_H_STDOUT
+# define LOG_H_STDOUT stdout
+#endif // LOG_H_STDOUT
+
+#ifndef LOG_H_STDERR
+# define LOG_H_STDERR stderr
+#endif // LOG_H_STDERR
+
 #ifdef LOG_H_STDERR_THRESHOLD
-#define LOG_H_CHOOSE_OUTPUT(sensitivity) (sensitivity >= LOG_H_STDERR_THRESHOLD ? stderr : stdout)
+# define LOG_H_CHOOSE_OUTPUT(sensitivity) (sensitivity >= LOG_H_STDERR_THRESHOLD ? LOG_H_STDERR : LOG_H_STDOUT)
 #else
-#define LOG_H_CHOOSE_OUTPUT(sensitivity) (stdout)
+# define LOG_H_CHOOSE_OUTPUT(sensitivity) (LOG_H_STDOUT)
 #endif // LOG_H_STDERR_THRESHOLD
 	   
 #include <stdio.h>
@@ -142,6 +155,9 @@ void LOG_H_FUN(logf_f)(FILE *out, const char* fmt, const unsigned int level, ...
 enum LOG_H_NAME(LOG_H_LOG_LEVEL) LOG_H_FUN(sensitivity);
 
 char* LOG_H_FUN(get_prefix)(const enum LOG_H_NAME(LOG_H_LOG_LEVEL) level){
+#ifdef LOG_H_NOCOLOR
+	return LOG_H_FUN(get_prefix_nc)(level);
+#endif
 #ifdef _WIN32
 	HANDLE  hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif // _WIN32
